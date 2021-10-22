@@ -47,23 +47,33 @@ class Movies extends React.Component {
   };
 
   handleSort = (sortColumn) => {
-    
-    this.setState({sortColumn});
+    this.setState({ sortColumn });
   };
-    
-  render() {
-    const count = this.state.movies.length;
-    const { pageSize, currentPage, movies: allMovies, sortColumn } = this.state;
 
+  getPagedData = () => {
+    const { pageSize, currentPage, movies: allMovies, sortColumn } = this.state;
     const filtered =
       this.state.selectedGenre && this.state.selectedGenre._id
         ? allMovies.filter((m) => m.genre._id === this.state.selectedGenre._id)
         : allMovies;
 
-    const sorted = _.orderBy(filtered, [this.state.sortColumn.path], [this.state.sortColumn.order]);
+    const sorted = _.orderBy(
+      filtered,
+      [this.state.sortColumn.path],
+      [this.state.sortColumn.order]
+    );
 
     const movies = paginate(sorted, currentPage, pageSize);
-    
+
+    return { totalCount: filtered.length, data: movies };
+  };
+
+  render() {
+    const count = this.state.movies.length;
+    const { pageSize, currentPage, sortColumn } = this.state;
+
+    const { totalCount, data: movies } = this.getPagedData();
+
     return (
       <div className="row">
         <div className="col-3">
@@ -78,7 +88,7 @@ class Movies extends React.Component {
           {count === 0 && <h1>There are no movies in database</h1>}
           {count !== 0 && (
             <div>
-              <h5>Showing {filtered.length} movies in the database</h5>
+              <h5>Showing {totalCount} movies in the database</h5>
               <MoviesTable
                 movies={movies}
                 sortColumn={sortColumn}
@@ -91,7 +101,7 @@ class Movies extends React.Component {
         </div>
 
         <Pagination
-          itemsCount={filtered.length}
+          itemsCount={totalCount}
           pageSize={pageSize}
           currentPage={currentPage}
           onPageChange={this.handlePageChange}
